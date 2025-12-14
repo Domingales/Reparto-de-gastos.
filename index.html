@@ -85,7 +85,9 @@
       background: linear-gradient(180deg, rgba(34,197,94,.25), rgba(34,197,94,.10));
       border-color: rgba(34,197,94,.35);
     }
-    .btn-primary:hover{ border-color: rgba(34,197,94,.55); background: linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.12)); }
+    .btn-primary:hover{ border-color: rgba(34,197,94,.55); background: linear-gradient(180deg, rgba(34,197,94,.28), rgba
+
+(34,197,94,.12)); }
     .btn-plus{
       font-size:16px;
       width:44px;
@@ -258,21 +260,132 @@
       font-size:12px;
       padding:4px 0 10px;
     }
+
+    dialog{
+      border:none;
+      padding:0;
+      background: transparent;
+    }
+    dialog::backdrop{
+      background: rgba(0,0,0,.55);
+    }
+    .modal{
+      width:min(880px, calc(100vw - 24px));
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(17,26,46,.92);
+      backdrop-filter: blur(10px);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal-head{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent);
+    }
+    .modal-title{
+      font-weight:900;
+      letter-spacing:.2px;
+      font-size:14px;
+    }
+    .modal-body{
+      padding:14px;
+      display:grid;
+      gap:12px;
+    }
+    .modal-grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width: 860px){
+      .modal-grid{
+        grid-template-columns: 340px 1fr;
+        align-items:start;
+      }
+    }
+    .box{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      background: rgba(255,255,255,.02);
+      overflow:hidden;
+    }
+    .box-h{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      font-weight:800;
+      font-size:12.5px;
+      color: var(--muted);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .box-b{
+      padding:12px;
+      display:grid;
+      gap:10px;
+    }
+    select{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    textarea{
+      width:100%;
+      min-height: 280px;
+      resize: vertical;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+      font-size:12.5px;
+      line-height:1.35;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      white-space: pre;
+    }
+    textarea:focus, select:focus{
+      border-color: rgba(34,197,94,.45);
+      box-shadow: 0 0 0 3px rgba(34,197,94,.12);
+    }
+    .modal-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:flex-end;
+      padding:12px 14px;
+      border-top:1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,.03));
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="title">
-        <h1>Reparto de gastos por “partes”</h1>
+        <h1>🧮 Reparto de gastos por "partes"  💸 ⚖️</h1>
         <p class="sub">
-          Introduce participantes, cuántas partes asume cada uno y cuánto ha pagado. Pulsa <strong>Calcular</strong> para ver quién debe abonar/cobrar y una propuesta de transferencias mínimas.
+          Introduce participantes, cuántas partes asume cada uno y cuánto ha pagado. Pulsa <strong>Calcular</strong> para ver 
+
+quién debe abonar/cobrar y una propuesta de transferencias mínimas.
         </p>
       </div>
       <div class="actions">
         <button class="btn-plus" id="btnAdd" title="Añadir participante">+</button>
         <button class="btn-primary" id="btnCalc">Calcular</button>
         <button id="btnSaveCopy" title="Guarda los resultados y los copia al portapapeles">Guardar + Copiar</button>
+        <button id="btnImport" title="Importa un archivo guardado (lista), y permite editar o borrar">Importar</button>
         <button class="btn-danger" id="btnReset" title="Limpiar todo">Reset</button>
       </div>
     </header>
@@ -297,7 +410,9 @@
 
         <div class="notice">
           <strong>Cómo funciona:</strong> el coste por parte se calcula como <em>Total pagado / Total partes</em>.  
-          A cada participante le corresponde <em>Partes × coste por parte</em>. Si ha pagado más, <strong>cobra</strong>; si ha pagado menos, <strong>abona</strong>.
+          A cada participante le corresponde <em>Partes × coste por parte</em>. Si ha pagado más, <strong>cobra</strong>; si 
+
+ha pagado menos, <strong>abona</strong>.
         </div>
       </div>
     </section>
@@ -338,6 +453,53 @@
     <footer>App local (un solo HTML). No envía datos a internet.</footer>
   </div>
 
+  <dialog id="importDlg" aria-label="Importar y gestionar archivos guardados">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">Importar / Editar / Borrar archivos guardados</div>
+        <button id="btnCloseImport" type="button" title="Cerrar">Cerrar</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-grid">
+          <div class="box">
+            <div class="box-h">
+              <span>Archivos guardados</span>
+              <span class="small" id="savedCount">0</span>
+            </div>
+            <div class="box-b">
+              <select id="savedSelect" size="10" aria-label="Lista de archivos guardados"></select>
+              <div class="small" id="savedMeta">Selecciona un archivo para ver su contenido.</div>
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="box-h">
+              <span>Contenido (editable)</span>
+              <span class="small">TSV</span>
+            </div>
+            <div class="box-b">
+              <textarea id="savedEditor" placeholder="Selecciona un archivo..."></textarea>
+              <div class="small" id="importHint">
+                Puedes editar el contenido y guardar cambios. También puedes cargarlo en la app (se restauran: Nombre, Partes, 
+
+Pagado).
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnLoadToApp" class="btn-primary" type="button" title="Carga este archivo en la app para seguir 
+
+editando/recálculo">Cargar en app</button>
+        <button id="btnSaveEdits" type="button" title="Guarda los cambios del contenido editado">Guardar cambios</button>
+        <button id="btnDeleteSaved" class="btn-danger" type="button" title="Borra el archivo seleccionado">Borrar</button>
+      </div>
+    </div>
+  </dialog>
+
   <script>
     // ===============================
     // Utilidades
@@ -350,7 +512,6 @@
     const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
     const parseNum = (v) => {
-      // Acepta "12,34" o "12.34"
       if (typeof v !== 'string') return Number(v);
       const cleaned = v.trim().replace(/\s/g,'').replace(',', '.');
       const num = Number(cleaned);
@@ -364,14 +525,10 @@
       .replaceAll('"','&quot;')
       .replaceAll("'","&#039;");
 
-    // Para repartir céntimos de forma consistente
-    // Reparte el redondeo a 2 decimales manteniendo la suma.
     function apportionToCents(rawTargets, total) {
-      // rawTargets: array de números (sin redondear)
-      // total: suma total (ya redondeada o no) que queremos respetar a 2 decimales
       const centsTotal = Math.round(total * 100);
 
-      const floors = rawTargets.map(v => Math.floor(v * 100)); // hacia abajo en céntimos
+      const floors = rawTargets.map(v => Math.floor(v * 100));
       let sumFloor = floors.reduce((a,b)=>a+b,0);
 
       const remainders = rawTargets.map((v,i)=>({
@@ -379,15 +536,13 @@
         r: (v * 100) - floors[i]
       })).sort((a,b)=> b.r - a.r);
 
-      let missing = centsTotal - sumFloor; // céntimos a añadir
+      let missing = centsTotal - sumFloor;
       const out = floors.slice();
 
       for (let k=0; k<remainders.length && missing>0; k++){
         out[remainders[k].i] += 1;
         missing--;
       }
-
-      // Convierte a euros con 2 decimales exactos
       return out.map(c => c/100);
     }
 
@@ -399,6 +554,7 @@
       btnAdd: document.getElementById('btnAdd'),
       btnCalc: document.getElementById('btnCalc'),
       btnSaveCopy: document.getElementById('btnSaveCopy'),
+      btnImport: document.getElementById('btnImport'),
       btnReset: document.getElementById('btnReset'),
       pillCount: document.getElementById('pillCount'),
       kpiTotal: document.getElementById('kpiTotal'),
@@ -408,13 +564,174 @@
       txList: document.getElementById('txList'),
       txNote: document.getElementById('txNote'),
       roundingNote: document.getElementById('roundingNote'),
+
+      importDlg: document.getElementById('importDlg'),
+      btnCloseImport: document.getElementById('btnCloseImport'),
+      savedSelect: document.getElementById('savedSelect'),
+      savedEditor: document.getElementById('savedEditor'),
+      savedCount: document.getElementById('savedCount'),
+      savedMeta: document.getElementById('savedMeta'),
+      btnLoadToApp: document.getElementById('btnLoadToApp'),
+      btnSaveEdits: document.getElementById('btnSaveEdits'),
+      btnDeleteSaved: document.getElementById('btnDeleteSaved'),
     };
 
-    // ===============================
-    // Estado de salida (para Guardar+Copiar)
-    // ===============================
     window.__lastReportText = '';
     window.__lastReportReady = false;
+
+    // ===============================
+    // File System Access (carpeta vinculada)
+    // ===============================
+    const FS_HANDLE_KEY = 'reparto_gastos_dirhandle_v1';
+
+    function hasFSAccessAPI() {
+      return !!(window.showDirectoryPicker && window.showSaveFilePicker);
+    }
+
+    async function persistDirHandle(handle) {
+      try {
+        localStorage.setItem(FS_HANDLE_KEY, '__has_handle__');
+        window.__dirHandle = handle;
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    async function ensureDirHandle(interactiveReasonText) {
+      if (!hasFSAccessAPI()) return null;
+      if (window.__dirHandle) return window.__dirHandle;
+
+      const ok = confirm(interactiveReasonText || 'Selecciona la carpeta donde quieres guardar/leer los archivos (.tsv).');
+      if (!ok) return null;
+
+      try {
+        const dir = await window.showDirectoryPicker({ mode: 'readwrite' });
+        await persistDirHandle(dir);
+        return dir;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function verifyDirPermission(dirHandle, mode='readwrite') {
+      if (!dirHandle) return false;
+      try {
+        const opts = { mode };
+        if (typeof dirHandle.queryPermission === 'function') {
+          const q = await dirHandle.queryPermission(opts);
+          if (q === 'granted') return true;
+        }
+        if (typeof dirHandle.requestPermission === 'function') {
+          const r = await dirHandle.requestPermission(opts);
+          return r === 'granted';
+        }
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    // mapa filename -> FileHandle
+    window.__dirFileHandleMap = new Map();
+    function getMappedFileHandle(filename) {
+      try {
+        if (window.__dirFileHandleMap && window.__dirFileHandleMap.has(filename)) {
+          return window.__dirFileHandleMap.get(filename);
+        }
+      } catch (_) {}
+      return null;
+    }
+    function setMappedFileHandle(filename, handle) {
+      try {
+        if (!window.__dirFileHandleMap) window.__dirFileHandleMap = new Map();
+        window.__dirFileHandleMap.set(filename, handle);
+      } catch (_) {}
+    }
+    function deleteMappedFileHandle(filename) {
+      try {
+        if (window.__dirFileHandleMap) window.__dirFileHandleMap.delete(filename);
+      } catch (_) {}
+    }
+
+    // ====== NUEVO (mínimo): cache en memoria filename -> {text, ts} para que cambiar selección no dependa de re-lecturas 
+
+======
+    window.__dirFileTextMap = new Map();
+    function setCachedText(name, text, ts) {
+      try {
+        if (!window.__dirFileTextMap) window.__dirFileTextMap = new Map();
+        window.__dirFileTextMap.set(name, { text: String(text ?? ''), ts: Number.isFinite(ts) ? ts : Date.now() });
+      } catch (_) {}
+    }
+    function getCachedText(name) {
+      try {
+        if (window.__dirFileTextMap && window.__dirFileTextMap.has(name)) {
+          return window.__dirFileTextMap.get(name);
+        }
+      } catch (_) {}
+      return null;
+    }
+    function deleteCachedText(name) {
+      try {
+        if (window.__dirFileTextMap) window.__dirFileTextMap.delete(name);
+      } catch (_) {}
+    }
+
+    // ===============================
+    // Almacenamiento local fallback (lista interna)
+    // ===============================
+    const STORAGE_KEY = 'reparto_gastos_saved_reports_v1';
+
+    function loadSavedIndex() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        return arr
+          .filter(x => x && typeof x.name === 'string' && typeof x.text === 'string')
+          .map(x => ({
+            name: x.name,
+            text: x.text,
+            ts: Number.isFinite(x.ts) ? x.ts : Date.now()
+          }))
+          .sort((a,b)=> (b.ts||0) - (a.ts||0));
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveSavedIndex(arr) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function upsertSaved(name, text) {
+      const now = Date.now();
+      const arr = loadSavedIndex();
+      const idx = arr.findIndex(x => x.name === name);
+      if (idx >= 0) {
+        arr[idx] = { name, text, ts: now };
+      } else {
+        arr.unshift({ name, text, ts: now });
+      }
+      return saveSavedIndex(arr);
+    }
+
+    function deleteSaved(name) {
+      const arr = loadSavedIndex().filter(x => x.name !== name);
+      return saveSavedIndex(arr);
+    }
+
+    function getSavedByName(name) {
+      const arr = loadSavedIndex();
+      return arr.find(x => x.name === name) || null;
+    }
 
     // ===============================
     // Gestión de filas
@@ -469,7 +786,6 @@
     function resetAll() {
       DOM.tbody.innerHTML = '';
       clearOutputs();
-      // 3 filas de ejemplo
       addRow({name:'', parts:1, paid:0});
       addRow({name:'', parts:1, paid:0});
       addRow({name:'', parts:1, paid:0});
@@ -483,7 +799,6 @@
       const participants = [];
       let hasError = false;
 
-      // limpiar estilos de error
       rows.forEach(r => r.querySelectorAll('input').forEach(inp => inp.classList.remove('error')));
 
       rows.forEach((r, idx) => {
@@ -495,19 +810,9 @@
         const parts = parseNum(partsInp.value);
         const paid = parseNum(paidInp.value);
 
-        // Validaciones mínimas
-        if (!name) {
-          nameInp.classList.add('error');
-          hasError = true;
-        }
-        if (!Number.isFinite(parts) || parts <= 0) {
-          partsInp.classList.add('error');
-          hasError = true;
-        }
-        if (!Number.isFinite(paid) || paid < 0) {
-          paidInp.classList.add('error');
-          hasError = true;
-        }
+        if (!name) { nameInp.classList.add('error'); hasError = true; }
+        if (!Number.isFinite(parts) || parts <= 0) { partsInp.classList.add('error'); hasError = true; }
+        if (!Number.isFinite(paid) || paid < 0) { paidInp.classList.add('error'); hasError = true; }
 
         participants.push({
           idx,
@@ -588,38 +893,29 @@
       }
 
       const unitRaw = totalPaid / totalParts;
-
-      // Objetivos teóricos (sin redondear)
       const targetsRaw = participants.map(p => p.parts * unitRaw);
 
-      // Ajuste a céntimos para que la suma de "le toca pagar" sea exactamente totalPaid (a 2 decimales)
       const totalPaid2 = round2(totalPaid);
       const targets = apportionToCents(targetsRaw, totalPaid2);
-
-      // Recalcular unitario "informativo"
       const unit2 = totalParts ? round2(totalPaid2 / totalParts) : 0;
 
-      // Balances a 2 decimales consistentes con targets
       const enriched = participants.map((p,i) => {
-        const shouldPay = targets[i]; // ya a 2 decimales exactos
+        const shouldPay = targets[i];
         const paid2 = round2(p.paid);
-        const balance = round2(paid2 - shouldPay); // + cobra, - paga
+        const balance = round2(paid2 - shouldPay);
         return { ...p, paid2, shouldPay, balance };
       });
 
-      // KPIs
       DOM.kpiTotal.textContent = fmtEUR(totalPaid2);
       DOM.kpiParts.textContent = String(totalParts);
       DOM.kpiUnit.textContent = fmtEUR(unit2);
 
-      // Nota de redondeo
       DOM.roundingNote.textContent =
         `Nota: se ajustan céntimos para que la suma de “Le toca pagar” sea exactamente ${fmtEUR(totalPaid2)}.`;
 
-      // Lista de resultados por participante
       enriched
         .slice()
-        .sort((a,b)=> b.balance - a.balance) // primero cobradores
+        .sort((a,b)=> b.balance - a.balance)
         .forEach(p => {
           const badgeClass = p.balance > 0.004 ? 'get' : (p.balance < -0.004 ? 'pay' : 'eq');
           const label = p.balance > 0.004
@@ -640,7 +936,6 @@
           DOM.resultList.appendChild(div);
         });
 
-      // Segunda sección: transferencias mínimas (quién paga a quién)
       const creditors = enriched
         .filter(p => p.balance > 0.004)
         .map(p => ({ name: p.name, amount: round2(p.balance) }))
@@ -648,12 +943,11 @@
 
       const debtors = enriched
         .filter(p => p.balance < -0.004)
-        .map(p => ({ name: p.name, amount: round2(-p.balance) })) // positivo: lo que debe pagar
+        .map(p => ({ name: p.name, amount: round2(-p.balance) }))
         .sort((a,b)=> b.amount - a.amount);
 
       let txs = [];
 
-      // Si ya está todo cuadrado
       if (creditors.length === 0 && debtors.length === 0) {
         const div = document.createElement('div');
         div.className = 'item';
@@ -668,32 +962,26 @@
         DOM.txNote.style.display = 'block';
         DOM.txNote.textContent = 'Todos han pagado exactamente lo que les corresponde según sus partes.';
 
-        // Report listo también en este caso
         window.__lastReportText = buildReportText({ enriched, txs: [], totalPaid2, totalParts, unit2 });
         window.__lastReportReady = true;
         return;
       }
 
-      // Algoritmo greedy de liquidación: minimiza número de transferencias de forma razonable
       let i = 0, j = 0;
       while (i < debtors.length && j < creditors.length) {
         const d = debtors[i];
         const c = creditors[j];
-        const dAmt = d.amount;
-        const cAmt = c.amount;
 
-        const pay = round2(Math.min(dAmt, cAmt));
+        const pay = round2(Math.min(d.amount, c.amount));
         if (pay > 0) {
           txs.push({ from: d.name, to: c.name, amount: pay });
           d.amount = round2(d.amount - pay);
           c.amount = round2(c.amount - pay);
         }
-
         if (d.amount <= 0.004) i++;
         if (c.amount <= 0.004) j++;
       }
 
-      // Render
       txs.forEach(t => {
         const div = document.createElement('div');
         div.className = 'item';
@@ -707,7 +995,6 @@
         DOM.txList.appendChild(div);
       });
 
-      // Comprobación final (informativa)
       const remainingDebtors = debtors.reduce((a,d)=>a+d.amount,0);
       const remainingCreditors = creditors.reduce((a,c)=>a+c.amount,0);
       const residue = round2(Math.abs(remainingDebtors - remainingCreditors));
@@ -718,7 +1005,6 @@
           ? 'Las transferencias propuestas equilibran el grupo (puede haber una diferencia de 1–2 céntimos por redondeos).'
           : 'Aviso: hay una discrepancia superior a 2 céntimos. Revisa entradas (pagado/partes) por posibles errores.';
 
-      // Guardar reporte en memoria para Guardar+Copiar
       window.__lastReportText = buildReportText({ enriched, txs, totalPaid2, totalParts, unit2 });
       window.__lastReportReady = true;
     }
@@ -734,7 +1020,6 @@
         }
       } catch (_) {}
 
-      // Fallback
       try {
         const ta = document.createElement('textarea');
         ta.value = text;
@@ -764,39 +1049,403 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
-    async function saveAndCopy() {
-      // Si no hay resultados calculados, intenta calcular primero
-      if (!window.__lastReportReady) {
-        calculate();
+    function normalizeFileName(filename) {
+      const defaultName = 'reparto_gastos.tsv';
+      let name = (filename == null) ? '' : String(filename).trim();
+      if (!name) name = defaultName;
+      if (!/\.[a-z0-9]{1,5}$/i.test(name)) name += '.tsv';
+      return name;
+    }
+
+    async function writeFileInDirectory(dirHandle, filename, text) {
+      const okPerm = await verifyDirPermission(dirHandle, 'readwrite');
+      if (!okPerm) return false;
+      try {
+        let fileHandle = getMappedFileHandle(filename);
+        if (!fileHandle) {
+          fileHandle = await dirHandle.getFileHandle(filename, { create: true });
+          setMappedFileHandle(filename, fileHandle);
+        }
+        const writable = await fileHandle.createWritable();
+        await writable.write(text);
+        await writable.close();
+
+        // mantener cache sincronizada (mínimo)
+        try {
+          const f = await fileHandle.getFile();
+          setCachedText(filename, text, f.lastModified || Date.now());
+        } catch (_) {
+          setCachedText(filename, text, Date.now());
+        }
+
+        return true;
+      } catch (_) {
+        return false;
       }
+    }
+
+    async function saveAndCopy() {
+      if (!window.__lastReportReady) calculate();
       if (!window.__lastReportReady || !window.__lastReportText) {
         DOM.txNote.style.display = 'block';
         DOM.txNote.textContent = 'Primero calcula resultados válidos (revisa nombres/partes/pagado).';
         return;
       }
 
-      const defaultName = 'reparto_gastos.tsv';
-      let filename = prompt('Nombre del archivo a guardar:', defaultName);
-      if (filename === null) return; // cancelado
-      filename = String(filename).trim();
-      if (!filename) filename = defaultName;
+      let filename = prompt('Nombre del archivo a guardar:', 'reparto_gastos.tsv');
+      if (filename === null) return;
+      filename = normalizeFileName(filename);
 
-      // Añadir extensión si no hay
-      if (!/\.[a-z0-9]{1,5}$/i.test(filename)) {
-        filename += '.tsv';
-      }
-
-      // Copiar
       const copied = await copyToClipboard(window.__lastReportText);
 
-      // Guardar
-      downloadTextFile(filename, window.__lastReportText);
+      let savedToFolder = false;
+      if (hasFSAccessAPI()) {
+        const dir = await ensureDirHandle('Para guardar en la MISMA CARPETA que tu app, selecciona esa carpeta ahora 
 
-      // Mensaje (reutiliza txNote)
+(permiso del navegador).');
+        if (dir) {
+          savedToFolder = await writeFileInDirectory(dir, filename, window.__lastReportText);
+        }
+      }
+
+      if (!savedToFolder) {
+        downloadTextFile(filename, window.__lastReportText);
+      }
+
+      const savedOk = upsertSaved(filename, window.__lastReportText);
+
       DOM.txNote.style.display = 'block';
-      DOM.txNote.textContent = copied
-        ? `Guardado como "${filename}" y copiado al portapapeles.`
-        : `Guardado como "${filename}". No se pudo copiar al portapapeles (el navegador puede bloquearlo).`;
+      if (savedToFolder) {
+        DOM.txNote.textContent = copied
+          ? `Guardado en la carpeta vinculada como "${filename}" y copiado al portapapeles.`
+          : `Guardado en la carpeta vinculada como "${filename}". No se pudo copiar al portapapeles (el navegador puede 
+
+bloquearlo).`;
+      } else {
+        DOM.txNote.textContent = copied
+          ? (savedOk
+              ? `Guardado como "${filename}" (descarga), copiado al portapapeles y añadido a la lista interna.`
+              : `Guardado como "${filename}" (descarga) y copiado al portapapeles.`)
+          : (savedOk
+              ? `Guardado como "${filename}" (descarga) y añadido a la lista interna. No se pudo copiar al portapapeles.`
+              : `Guardado como "${filename}" (descarga). No se pudo copiar al portapapeles.`);
+      }
+    }
+
+    // ===============================
+    // Importar / Editar / Borrar
+    // ===============================
+    function formatSavedMeta(item) {
+      if (!item) return 'Selecciona un archivo para ver su contenido.';
+      const d = new Date(item.ts || Date.now());
+      return `Nombre: ${item.name} · Guardado: ${d.toLocaleString('es-ES')} · Tamaño: ${item.text.length} chars`;
+    }
+
+    async function listTSVFilesFromDirectory(dirHandle) {
+      const okPerm = await verifyDirPermission(dirHandle, 'readwrite');
+      if (!okPerm) return [];
+      const items = [];
+      try {
+        window.__dirFileHandleMap = new Map();
+        window.__dirFileTextMap = new Map(); // reset cache al listar
+
+        for await (const [name, handle] of dirHandle.entries()) {
+          if (handle.kind !== 'file') continue;
+          if (!/\.tsv$/i.test(name)) continue;
+
+          setMappedFileHandle(name, handle);
+
+          let ts = Date.now();
+          let text = '';
+          try {
+            const f = await handle.getFile();
+            ts = f.lastModified || ts;
+            text = await f.text();
+          } catch (_) {
+            // si no se puede leer, lo dejamos vacío; el UI lo reflejará
+          }
+          setCachedText(name, text, ts);
+          items.push({ name, handle, ts });
+        }
+      } catch (_) {}
+      items.sort((a,b)=> (b.ts||0) - (a.ts||0));
+      return items;
+    }
+
+    // se mantiene por compatibilidad, pero ya no es la vía principal al cambiar selección
+    async function readFileFromDirectory(dirHandle, filename) {
+      const okPerm = await verifyDirPermission(dirHandle, 'readwrite');
+      if (!okPerm) return null;
+      try {
+        let fileHandle = getMappedFileHandle(filename);
+        if (!fileHandle) {
+          fileHandle = await dirHandle.getFileHandle(filename, { create: false });
+          setMappedFileHandle(filename, fileHandle);
+        }
+        const file = await fileHandle.getFile();
+        return { name: filename, text: await file.text(), ts: file.lastModified || Date.now() };
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function writeFileEditsInDirectory(dirHandle, filename, text) {
+      return writeFileInDirectory(dirHandle, filename, text);
+    }
+
+    async function deleteFileInDirectory(dirHandle, filename) {
+      const okPerm = await verifyDirPermission(dirHandle, 'readwrite');
+      if (!okPerm) return false;
+      try {
+        await dirHandle.removeEntry(filename);
+        deleteMappedFileHandle(filename);
+        deleteCachedText(filename);
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    async function refreshSavedList(selectNameToKeep = null) {
+      DOM.savedSelect.innerHTML = '';
+      DOM.savedEditor.value = '';
+      DOM.savedMeta.textContent = 'Selecciona un archivo para ver su contenido.';
+
+      if (hasFSAccessAPI()) {
+        const dir = await ensureDirHandle('Para importar desde la MISMA CARPETA que tu app, selecciona esa carpeta ahora 
+
+(permiso del navegador).');
+        if (dir) {
+          const files = await listTSVFilesFromDirectory(dir);
+          DOM.savedCount.textContent = String(files.length);
+
+          if (files.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '(No hay .tsv en la carpeta vinculada)';
+            DOM.savedSelect.appendChild(opt);
+            DOM.savedSelect.disabled = true;
+            DOM.savedMeta.textContent = 'No hay archivos .tsv en la carpeta vinculada. Guarda uno primero con “Guardar + 
+
+Copiar”.';
+            return;
+          }
+
+          DOM.savedSelect.disabled = false;
+          files.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = it.name;
+            const d = new Date(it.ts || Date.now());
+            opt.textContent = `${it.name} · ${d.toLocaleDateString('es-ES')}`;
+            DOM.savedSelect.appendChild(opt);
+          });
+
+          let toSelect = selectNameToKeep;
+          if (!toSelect || !files.some(x => x.name === toSelect)) toSelect = files[0].name;
+          DOM.savedSelect.value = toSelect;
+
+          // ====== usa cache (sin re-leer del FS) ======
+          const cached = getCachedText(toSelect);
+          if (cached && typeof cached.text === 'string') {
+            DOM.savedEditor.value = cached.text;
+            DOM.savedMeta.textContent = formatSavedMeta({ name: toSelect, text: cached.text, ts: cached.ts });
+          } else {
+            DOM.savedMeta.textContent = 'No se pudo leer el archivo seleccionado.';
+          }
+          return;
+        }
+      }
+
+      const items = loadSavedIndex();
+      DOM.savedCount.textContent = String(items.length);
+
+      if (items.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = '(No hay archivos guardados)';
+        DOM.savedSelect.appendChild(opt);
+        DOM.savedSelect.disabled = true;
+        DOM.savedMeta.textContent = 'No hay archivos guardados todavía. Usa “Guardar + Copiar” para crear uno.';
+        return;
+      }
+
+      DOM.savedSelect.disabled = false;
+      items.forEach(it => {
+        const opt = document.createElement('option');
+        opt.value = it.name;
+        const d = new Date(it.ts || Date.now());
+        opt.textContent = `${it.name} · ${d.toLocaleDateString('es-ES')}`;
+        DOM.savedSelect.appendChild(opt);
+      });
+
+      let toSelect = selectNameToKeep;
+      if (!toSelect || !items.some(x => x.name === toSelect)) toSelect = items[0].name;
+      DOM.savedSelect.value = toSelect;
+
+      const current = getSavedByName(toSelect);
+      DOM.savedEditor.value = current ? current.text : '';
+      DOM.savedMeta.textContent = formatSavedMeta(current);
+    }
+
+    function openImportDialog() {
+      (async () => {
+        await refreshSavedList();
+        if (typeof DOM.importDlg.showModal === 'function') {
+          DOM.importDlg.showModal();
+        } else {
+          DOM.txNote.style.display = 'block';
+          DOM.txNote.textContent = 'Este navegador no soporta diálogos modales. Prueba con Chrome/Edge.';
+        }
+      })();
+    }
+
+    function closeImportDialog() {
+      try { DOM.importDlg.close(); } catch (_) {}
+    }
+
+    function parseParticipantsFromReport(text) {
+      const lines = String(text || '').split(/\r?\n/);
+      let start = lines.findIndex(l => l.trim() === 'RESULTADOS_POR_PARTICIPANTE');
+      if (start < 0) return null;
+
+      let i = start + 2;
+      const out = [];
+      for (; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line) break;
+        const trimmed = line.trim();
+        if (!trimmed) break;
+        if (trimmed === 'QUIEN_PAGA_A_QUIEN') break;
+        if (trimmed.startsWith('#')) continue;
+
+        const cols = line.split('\t');
+        if (cols.length < 3) continue;
+
+        const name = (cols[0] || '').trim();
+        const parts = parseNum(cols[1] || '');
+        const paid = parseNum(cols[2] || '');
+
+        if (!name) continue;
+        if (!Number.isFinite(parts) || parts <= 0) continue;
+        if (!Number.isFinite(paid) || paid < 0) continue;
+
+        out.push({ name, parts: Math.round(parts), paid: round2(paid) });
+      }
+      return out.length ? out : null;
+    }
+
+    async function loadSelectedSavedToEditor() {
+      const name = DOM.savedSelect.value;
+      if (!name) return;
+
+      // ====== prioridad: cache de carpeta (si existe) ======
+      const cached = getCachedText(name);
+      if (cached && typeof cached.text === 'string') {
+        DOM.savedEditor.value = cached.text;
+        DOM.savedMeta.textContent = formatSavedMeta({ name, text: cached.text, ts: cached.ts });
+        return;
+      }
+
+      // fallback antiguo (por si vienes de localStorage)
+      const item = getSavedByName(name);
+      DOM.savedEditor.value = item ? item.text : '';
+      DOM.savedMeta.textContent = formatSavedMeta(item);
+    }
+
+    async function saveEditorEdits() {
+      const name = DOM.savedSelect.value;
+      if (!name) return;
+
+      const newText = DOM.savedEditor.value || '';
+
+      if (hasFSAccessAPI()) {
+        const dir = await ensureDirHandle('Para guardar cambios en la carpeta, selecciona la carpeta vinculada.');
+        if (dir) {
+          const ok = await writeFileEditsInDirectory(dir, name, newText);
+          DOM.savedMeta.textContent = ok
+            ? formatSavedMeta({ name, text: newText, ts: Date.now() })
+            : 'No se pudo guardar cambios en la carpeta (permiso o error).';
+          if (ok) await refreshSavedList(name);
+          return;
+        }
+      }
+
+      const ok = upsertSaved(name, newText);
+      DOM.savedMeta.textContent = ok
+        ? formatSavedMeta(getSavedByName(name))
+        : 'No se pudo guardar (almacenamiento local lleno o bloqueado).';
+      if (ok) await refreshSavedList(name);
+    }
+
+    async function deleteSelectedSaved() {
+      const name = DOM.savedSelect.value;
+      if (!name) return;
+
+      const okConfirm = confirm(`¿Seguro que quieres borrar "${name}"?`);
+      if (!okConfirm) return;
+
+      if (hasFSAccessAPI()) {
+        const dir = await ensureDirHandle('Para borrar en la carpeta, selecciona la carpeta vinculada.');
+        if (dir) {
+          const ok = await deleteFileInDirectory(dir, name);
+          if (!ok) {
+            DOM.savedMeta.textContent = 'No se pudo borrar el archivo en la carpeta (permiso o error).';
+            return;
+          }
+          await refreshSavedList();
+          return;
+        }
+      }
+
+      deleteSaved(name);
+      await refreshSavedList();
+    }
+
+    async function loadSelectedSavedIntoApp() {
+      const name = DOM.savedSelect.value;
+      if (!name) return;
+
+      // Fuente principal: el editor (ya está sincronizado por selección)
+      let text = (DOM.savedEditor && typeof DOM.savedEditor.value === 'string') ? DOM.savedEditor.value : null;
+      if (text != null) {
+        text = String(text);
+        if (text.trim().length === 0) text = null;
+      }
+
+      // Fallback: cache de carpeta
+      if (text == null) {
+        const cached = getCachedText(name);
+        if (cached && typeof cached.text === 'string' && cached.text.trim().length) text = cached.text;
+      }
+
+      // Fallback final: localStorage
+      if (text == null) {
+        const item = getSavedByName(name);
+        if (item) text = item.text;
+      }
+
+      if (text == null) {
+        DOM.savedMeta.textContent = 'No se pudo leer el archivo seleccionado.';
+        return;
+      }
+
+      const rows = parseParticipantsFromReport(text);
+      if (!rows) {
+        DOM.savedMeta.textContent = 'No se pudo restaurar participantes (formato no reconocido). Puedes editar el texto o 
+
+guardar uno nuevo.';
+        return;
+      }
+
+      DOM.tbody.innerHTML = '';
+      clearOutputs();
+      rows.forEach(r => addRow({ name: r.name, parts: r.parts, paid: r.paid }));
+      updateCount();
+
+      closeImportDialog();
+
+      DOM.txNote.style.display = 'block';
+      DOM.txNote.textContent = `Cargado "${name}" en la app. Ahora puedes editar y volver a calcular.`;
     }
 
     // ===============================
@@ -805,9 +1454,21 @@
     DOM.btnAdd.addEventListener('click', () => addRow({name:'', parts:1, paid:0}));
     DOM.btnCalc.addEventListener('click', calculate);
     DOM.btnSaveCopy.addEventListener('click', saveAndCopy);
+    DOM.btnImport.addEventListener('click', openImportDialog);
     DOM.btnReset.addEventListener('click', resetAll);
 
-    // Permitir Enter para calcular desde cualquier input
+    DOM.btnCloseImport.addEventListener('click', closeImportDialog);
+    DOM.savedSelect.addEventListener('change', () => { loadSelectedSavedToEditor(); });
+    DOM.btnSaveEdits.addEventListener('click', () => { saveEditorEdits(); });
+    DOM.btnDeleteSaved.addEventListener('click', () => { deleteSelectedSaved(); });
+    DOM.btnLoadToApp.addEventListener('click', () => { loadSelectedSavedIntoApp(); });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (DOM.importDlg && DOM.importDlg.open) closeImportDialog();
+      }
+    });
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         const el = document.activeElement;
