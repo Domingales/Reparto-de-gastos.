@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -272,6 +272,7 @@
       <div class="actions">
         <button class="btn-plus" id="btnAdd" title="Añadir participante">+</button>
         <button class="btn-primary" id="btnCalc">Calcular</button>
+        <button id="btnSaveCopy" title="Guarda los resultados y los copia al portapapeles">Guardar + Copiar</button>
         <button class="btn-danger" id="btnReset" title="Limpiar todo">Reset</button>
       </div>
     </header>
@@ -397,6 +398,7 @@
       tbody: document.getElementById('tbody'),
       btnAdd: document.getElementById('btnAdd'),
       btnCalc: document.getElementById('btnCalc'),
+      btnSaveCopy: document.getElementById('btnSaveCopy'),
       btnReset: document.getElementById('btnReset'),
       pillCount: document.getElementById('pillCount'),
       kpiTotal: document.getElementById('kpiTotal'),
@@ -407,6 +409,12 @@
       txNote: document.getElementById('txNote'),
       roundingNote: document.getElementById('roundingNote'),
     };
+
+    // ===============================
+    // Estado de salida (para Guardar+Copiar)
+    // ===============================
+    window.__lastReportText = '';
+    window.__lastReportReady = false;
 
     // ===============================
     // Gestión de filas
@@ -454,6 +462,8 @@
       DOM.txNote.style.display = 'none';
       DOM.txNote.textContent = '';
       DOM.roundingNote.textContent = '';
+      window.__lastReportText = '';
+      window.__lastReportReady = false;
     }
 
     function resetAll() {
@@ -508,6 +518,49 @@
       });
 
       return { participants, hasError };
+    }
+
+    function buildReportText({ enriched, txs, totalPaid2, totalParts, unit2 }) {
+      const now = new Date();
+      const stamp = now.toLocaleString('es-ES');
+
+      const lines = [];
+      lines.push(`# Reparto de gastos por partes`);
+      lines.push(`# Generado: ${stamp}`);
+      lines.push(`# Total pagado\t${totalPaid2.toFixed(2)}`);
+      lines.push(`# Total partes\t${totalParts}`);
+      lines.push(`# Coste por parte (informativo)\t${unit2.toFixed(2)}`);
+      lines.push('');
+
+      lines.push('RESULTADOS_POR_PARTICIPANTE');
+      lines.push(['Nombre','Partes','Pagado','Le_toca','Balance','Estado'].join('\t'));
+      enriched.forEach(p => {
+        const estado = (p.balance > 0.004) ? 'COBRA' : (p.balance < -0.004 ? 'ABONA' : 'CUADRADO');
+        lines.push([
+          p.name,
+          String(p.parts),
+          p.paid2.toFixed(2),
+          p.shouldPay.toFixed(2),
+          p.balance.toFixed(2),
+          estado
+        ].join('\t'));
+      });
+
+      lines.push('');
+      lines.push('QUIEN_PAGA_A_QUIEN');
+      if (!txs || txs.length === 0) {
+        lines.push('No hacen falta transferencias.');
+      } else {
+        lines.push(['De','A','Importe'].join('\t'));
+        txs.forEach(t => {
+          lines.push([t.from, t.to, t.amount.toFixed(2)].join('\t'));
+        });
+      }
+
+      lines.push('');
+      lines.push('# Nota: formato TSV (tabuladores) para pegar en Excel.');
+
+      return lines.join('\n');
     }
 
     function calculate() {
@@ -598,6 +651,8 @@
         .map(p => ({ name: p.name, amount: round2(-p.balance) })) // positivo: lo que debe pagar
         .sort((a,b)=> b.amount - a.amount);
 
+      let txs = [];
+
       // Si ya está todo cuadrado
       if (creditors.length === 0 && debtors.length === 0) {
         const div = document.createElement('div');
@@ -612,11 +667,14 @@
         DOM.txList.appendChild(div);
         DOM.txNote.style.display = 'block';
         DOM.txNote.textContent = 'Todos han pagado exactamente lo que les corresponde según sus partes.';
+
+        // Report listo también en este caso
+        window.__lastReportText = buildReportText({ enriched, txs: [], totalPaid2, totalParts, unit2 });
+        window.__lastReportReady = true;
         return;
       }
 
       // Algoritmo greedy de liquidación: minimiza número de transferencias de forma razonable
-      const txs = [];
       let i = 0, j = 0;
       while (i < debtors.length && j < creditors.length) {
         const d = debtors[i];
@@ -659,6 +717,86 @@
         residue <= 0.02
           ? 'Las transferencias propuestas equilibran el grupo (puede haber una diferencia de 1–2 céntimos por redondeos).'
           : 'Aviso: hay una discrepancia superior a 2 céntimos. Revisa entradas (pagado/partes) por posibles errores.';
+
+      // Guardar reporte en memoria para Guardar+Copiar
+      window.__lastReportText = buildReportText({ enriched, txs, totalPaid2, totalParts, unit2 });
+      window.__lastReportReady = true;
+    }
+
+    // ===============================
+    // Guardar + Copiar
+    // ===============================
+    async function copyToClipboard(text) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (_) {}
+
+      // Fallback
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function downloadTextFile(filename, text) {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    async function saveAndCopy() {
+      // Si no hay resultados calculados, intenta calcular primero
+      if (!window.__lastReportReady) {
+        calculate();
+      }
+      if (!window.__lastReportReady || !window.__lastReportText) {
+        DOM.txNote.style.display = 'block';
+        DOM.txNote.textContent = 'Primero calcula resultados válidos (revisa nombres/partes/pagado).';
+        return;
+      }
+
+      const defaultName = 'reparto_gastos.tsv';
+      let filename = prompt('Nombre del archivo a guardar:', defaultName);
+      if (filename === null) return; // cancelado
+      filename = String(filename).trim();
+      if (!filename) filename = defaultName;
+
+      // Añadir extensión si no hay
+      if (!/\.[a-z0-9]{1,5}$/i.test(filename)) {
+        filename += '.tsv';
+      }
+
+      // Copiar
+      const copied = await copyToClipboard(window.__lastReportText);
+
+      // Guardar
+      downloadTextFile(filename, window.__lastReportText);
+
+      // Mensaje (reutiliza txNote)
+      DOM.txNote.style.display = 'block';
+      DOM.txNote.textContent = copied
+        ? `Guardado como "${filename}" y copiado al portapapeles.`
+        : `Guardado como "${filename}". No se pudo copiar al portapapeles (el navegador puede bloquearlo).`;
     }
 
     // ===============================
@@ -666,6 +804,7 @@
     // ===============================
     DOM.btnAdd.addEventListener('click', () => addRow({name:'', parts:1, paid:0}));
     DOM.btnCalc.addEventListener('click', calculate);
+    DOM.btnSaveCopy.addEventListener('click', saveAndCopy);
     DOM.btnReset.addEventListener('click', resetAll);
 
     // Permitir Enter para calcular desde cualquier input
