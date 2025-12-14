@@ -22,10 +22,7 @@
     body{
       margin:0;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background: radial-gradient(900px 500px at 20% 0%, rgba(34,197,94,.14), transparent 55%),
-                  radial-gradient(900px 500px at 90% 10%, rgba(234,179,8,.12), transparent 50%),
-                  radial-gradient(900px 500px at 50% 100%, rgba(239,68,68,.10), transparent 55%),
-                  var(--bg);
+      background: transparent;
       color:var(--text);
       padding:18px;
     }
@@ -42,7 +39,7 @@
       gap:12px;
       padding:16px 18px;
       border:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+      background: #0f172a;
       border-radius:var(--radius);
       box-shadow:var(--shadow);
     }
@@ -85,7 +82,9 @@
       background: linear-gradient(180deg, rgba(34,197,94,.25), rgba(34,197,94,.10));
       border-color: rgba(34,197,94,.35);
     }
-    .btn-primary:hover{ border-color: rgba(34,197,94,.55); background: linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.12)); }
+    .btn-primary:hover{ border-color: rgba(34,197,94,.55); background: linear-gradient(180deg, rgba(34,197,94,.28), rgba
+
+(34,197,94,.12)); }
     .btn-plus{
       font-size:16px;
       width:44px;
@@ -102,7 +101,7 @@
     .card{
       border:1px solid var(--border);
       border-radius:var(--radius);
-      background: rgba(255,255,255,.03);
+      background: #0f172a;
       box-shadow:var(--shadow);
       overflow:hidden;
     }
@@ -374,7 +373,9 @@
       <div class="title">
         <h1>🧮 Reparto de gastos por "partes"  💸 ⚖️</h1>
         <p class="sub">
-          Introduce participantes, cuántas partes asume cada uno y cuánto ha pagado. Pulsa <strong>Calcular</strong> para ver quién debe abonar/cobrar y una propuesta de transferencias mínimas.
+          Introduce participantes, cuántas partes asume cada uno y cuánto ha pagado. Pulsa <strong>Calcular</strong> para ver 
+
+quién debe abonar/cobrar y una propuesta de transferencias mínimas.
         </p>
       </div>
       <div class="actions">
@@ -406,7 +407,9 @@
 
         <div class="notice">
           <strong>Cómo funciona:</strong> el coste por parte se calcula como <em>Total pagado / Total partes</em>.  
-          A cada participante le corresponde <em>Partes × coste por parte</em>. Si ha pagado más, <strong>cobra</strong>; si ha pagado menos, <strong>abona</strong>.
+          A cada participante le corresponde <em>Partes × coste por parte</em>. Si ha pagado más, <strong>cobra</strong>; si 
+
+ha pagado menos, <strong>abona</strong>.
         </div>
       </div>
     </section>
@@ -475,7 +478,9 @@
             <div class="box-b">
               <textarea id="savedEditor" placeholder="Selecciona un archivo..."></textarea>
               <div class="small" id="importHint">
-                Puedes editar el contenido y guardar cambios. También puedes cargarlo en la app (se restauran: Nombre, Partes, Pagado).
+                Puedes editar el contenido y guardar cambios. También puedes cargarlo en la app (se restauran: Nombre, Partes, 
+
+Pagado).
               </div>
             </div>
           </div>
@@ -483,7 +488,9 @@
       </div>
 
       <div class="modal-actions">
-        <button id="btnLoadToApp" class="btn-primary" type="button" title="Carga este archivo en la app para seguir editando/recálculo">Cargar en app</button>
+        <button id="btnLoadToApp" class="btn-primary" type="button" title="Carga este archivo en la app para seguir 
+
+editando/recálculo">Cargar en app</button>
         <button id="btnSaveEdits" type="button" title="Guarda los cambios del contenido editado">Guardar cambios</button>
         <button id="btnDeleteSaved" class="btn-danger" type="button" title="Borra el archivo seleccionado">Borrar</button>
       </div>
@@ -644,7 +651,9 @@
       } catch (_) {}
     }
 
-    // ====== NUEVO (mínimo): cache en memoria filename -> {text, ts} para que cambiar selección no dependa de re-lecturas ======
+    // ====== NUEVO (mínimo): cache en memoria filename -> {text, ts} para que cambiar selección no dependa de re-lecturas 
+
+======
     window.__dirFileTextMap = new Map();
     function setCachedText(name, text, ts) {
       try {
@@ -1088,7 +1097,9 @@
 
       let savedToFolder = false;
       if (hasFSAccessAPI()) {
-        const dir = await ensureDirHandle('Para guardar en la MISMA CARPETA que tu app, selecciona esa carpeta ahora (permiso del navegador).');
+        const dir = await ensureDirHandle('Para guardar en la MISMA CARPETA que tu app, selecciona esa carpeta ahora 
+
+(permiso del navegador).');
         if (dir) {
           savedToFolder = await writeFileInDirectory(dir, filename, window.__lastReportText);
         }
@@ -1104,7 +1115,9 @@
       if (savedToFolder) {
         DOM.txNote.textContent = copied
           ? `Guardado en la carpeta vinculada como "${filename}" y copiado al portapapeles.`
-          : `Guardado en la carpeta vinculada como "${filename}". No se pudo copiar al portapapeles (el navegador puede bloquearlo).`;
+          : `Guardado en la carpeta vinculada como "${filename}". No se pudo copiar al portapapeles (el navegador puede 
+
+bloquearlo).`;
       } else {
         DOM.txNote.textContent = copied
           ? (savedOk
@@ -1196,7 +1209,9 @@
       DOM.savedMeta.textContent = 'Selecciona un archivo para ver su contenido.';
 
       if (hasFSAccessAPI()) {
-        const dir = await ensureDirHandle('Para importar desde la MISMA CARPETA que tu app, selecciona esa carpeta ahora (permiso del navegador).');
+        const dir = await ensureDirHandle('Para importar desde la MISMA CARPETA que tu app, selecciona esa carpeta ahora 
+
+(permiso del navegador).');
         if (dir) {
           const files = await listTSVFilesFromDirectory(dir);
           DOM.savedCount.textContent = String(files.length);
@@ -1207,7 +1222,9 @@
             opt.textContent = '(No hay .tsv en la carpeta vinculada)';
             DOM.savedSelect.appendChild(opt);
             DOM.savedSelect.disabled = true;
-            DOM.savedMeta.textContent = 'No hay archivos .tsv en la carpeta vinculada. Guarda uno primero con “Guardar + Copiar”.';
+            DOM.savedMeta.textContent = 'No hay archivos .tsv en la carpeta vinculada. Guarda uno primero con “Guardar + 
+
+Copiar”.';
             return;
           }
 
@@ -1411,7 +1428,9 @@
 
       const rows = parseParticipantsFromReport(text);
       if (!rows) {
-        DOM.savedMeta.textContent = 'No se pudo restaurar participantes (formato no reconocido). Puedes editar el texto o guardar uno nuevo.';
+        DOM.savedMeta.textContent = 'No se pudo restaurar participantes (formato no reconocido). Puedes editar el texto o 
+
+guardar uno nuevo.';
         return;
       }
 
