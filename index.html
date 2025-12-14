@@ -1,0 +1,686 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reparto de gastos por partes</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#111a2e;
+      --panel2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:#22304a;
+      --accent:#22c55e;
+      --accent2:#ef4444;
+      --accent3:#eab308;
+      --shadow:0 14px 40px rgba(0,0,0,.45);
+      --radius:16px;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(900px 500px at 20% 0%, rgba(34,197,94,.14), transparent 55%),
+                  radial-gradient(900px 500px at 90% 10%, rgba(234,179,8,.12), transparent 50%),
+                  radial-gradient(900px 500px at 50% 100%, rgba(239,68,68,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      padding:18px;
+    }
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      display:grid;
+      gap:14px;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      padding:16px 18px;
+      border:1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    header .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    button{
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      transition: transform .05s ease, background .15s ease, border-color .15s ease;
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+    button:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); }
+    button:active{ transform: translateY(1px); }
+    .btn-primary{
+      background: linear-gradient(180deg, rgba(34,197,94,.25), rgba(34,197,94,.10));
+      border-color: rgba(34,197,94,.35);
+    }
+    .btn-primary:hover{ border-color: rgba(34,197,94,.55); background: linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.12)); }
+    .btn-plus{
+      font-size:16px;
+      width:44px;
+      height:44px;
+      display:inline-grid;
+      place-items:center;
+      padding:0;
+    }
+    .btn-danger{
+      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.10));
+      border-color: rgba(239,68,68,.35);
+    }
+    .btn-danger:hover{ border-color: rgba(239,68,68,.55); }
+    .card{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      background: rgba(255,255,255,.03);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.3px;
+      padding:12px 14px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .card .body{ padding:14px; }
+    .table{
+      width:100%;
+      border-collapse:collapse;
+      overflow:hidden;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .table th, .table td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      text-align:left;
+      font-size:13px;
+    }
+    .table th{
+      color:var(--muted);
+      font-weight:700;
+      background: rgba(255,255,255,.02);
+    }
+    .table tr:last-child td{ border-bottom:none; }
+    input{
+      width:100%;
+      padding:9px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+      font-size:13px;
+    }
+    input::placeholder{ color: rgba(229,231,235,.45); }
+    input:focus{ border-color: rgba(34,197,94,.45); box-shadow: 0 0 0 3px rgba(34,197,94,.12); }
+    .row-actions{
+      display:flex;
+      gap:8px;
+      justify-content:flex-end;
+      align-items:center;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+      font-size:12.5px;
+      color:var(--muted);
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+    @media (min-width: 920px){
+      .grid2{ grid-template-columns: 1fr 1fr; }
+    }
+    .kpis{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:10px;
+    }
+    .kpi{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .kpi .label{ font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .kpi .val{ font-size:16px; font-weight:800; letter-spacing:.2px; }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:10px;
+    }
+    .item{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.02);
+      border-radius:14px;
+      padding:10px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .item .left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+    .item .name{
+      font-weight:800;
+      font-size:13.5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 62vw;
+    }
+    .item .meta{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .badge{
+      font-size:12px;
+      font-weight:800;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      white-space:nowrap;
+    }
+    .badge.pay{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.35); color: #fecaca; }
+    .badge.get{ background: rgba(34,197,94,.10); border-color: rgba(34,197,94,.35); color: #bbf7d0; }
+    .badge.eq{  background: rgba(234,179,8,.10); border-color: rgba(234,179,8,.35); color: #fde68a; }
+    .notice{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(0,0,0,.12);
+      color: var(--muted);
+      font-size:12.5px;
+      line-height:1.4;
+    }
+    .error{
+      border-color: rgba(239,68,68,.5)!important;
+      box-shadow: 0 0 0 3px rgba(239,68,68,.12)!important;
+    }
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+    footer{
+      text-align:center;
+      color:rgba(156,163,175,.75);
+      font-size:12px;
+      padding:4px 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Reparto de gastos por “partes”</h1>
+        <p class="sub">
+          Introduce participantes, cuántas partes asume cada uno y cuánto ha pagado. Pulsa <strong>Calcular</strong> para ver quién debe abonar/cobrar y una propuesta de transferencias mínimas.
+        </p>
+      </div>
+      <div class="actions">
+        <button class="btn-plus" id="btnAdd" title="Añadir participante">+</button>
+        <button class="btn-primary" id="btnCalc">Calcular</button>
+        <button class="btn-danger" id="btnReset" title="Limpiar todo">Reset</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>
+        Participantes
+        <span class="pill" id="pillCount">0 participantes</span>
+      </h2>
+      <div class="body">
+        <table class="table" aria-label="Tabla de participantes">
+          <thead>
+            <tr>
+              <th style="width:42%">Nombre</th>
+              <th style="width:18%">Partes</th>
+              <th style="width:22%">Pagado (€)</th>
+              <th style="width:18%; text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+
+        <div class="notice">
+          <strong>Cómo funciona:</strong> el coste por parte se calcula como <em>Total pagado / Total partes</em>.  
+          A cada participante le corresponde <em>Partes × coste por parte</em>. Si ha pagado más, <strong>cobra</strong>; si ha pagado menos, <strong>abona</strong>.
+        </div>
+      </div>
+    </section>
+
+    <div class="grid2">
+      <section class="card">
+        <h2>Resultados por participante</h2>
+        <div class="body">
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Total pagado</div>
+              <div class="val" id="kpiTotal">—</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Total partes</div>
+              <div class="val" id="kpiParts">—</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Coste por parte</div>
+              <div class="val" id="kpiUnit">—</div>
+            </div>
+          </div>
+
+          <div class="list" id="resultList" style="margin-top:12px;"></div>
+          <div class="small" id="roundingNote" style="margin-top:10px;"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Quién paga a quién (transferencias mínimas)</h2>
+        <div class="body">
+          <div class="list" id="txList"></div>
+          <div class="notice" id="txNote" style="display:none;"></div>
+        </div>
+      </section>
+    </div>
+
+    <footer>App local (un solo HTML). No envía datos a internet.</footer>
+  </div>
+
+  <script>
+    // ===============================
+    // Utilidades
+    // ===============================
+    const fmtEUR = (n) => {
+      if (!Number.isFinite(n)) return '—';
+      return n.toLocaleString('es-ES', { style:'currency', currency:'EUR' });
+    };
+
+    const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+    const parseNum = (v) => {
+      // Acepta "12,34" o "12.34"
+      if (typeof v !== 'string') return Number(v);
+      const cleaned = v.trim().replace(/\s/g,'').replace(',', '.');
+      const num = Number(cleaned);
+      return Number.isFinite(num) ? num : NaN;
+    };
+
+    const escapeHTML = (s) => String(s)
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'","&#039;");
+
+    // Para repartir céntimos de forma consistente
+    // Reparte el redondeo a 2 decimales manteniendo la suma.
+    function apportionToCents(rawTargets, total) {
+      // rawTargets: array de números (sin redondear)
+      // total: suma total (ya redondeada o no) que queremos respetar a 2 decimales
+      const centsTotal = Math.round(total * 100);
+
+      const floors = rawTargets.map(v => Math.floor(v * 100)); // hacia abajo en céntimos
+      let sumFloor = floors.reduce((a,b)=>a+b,0);
+
+      const remainders = rawTargets.map((v,i)=>({
+        i,
+        r: (v * 100) - floors[i]
+      })).sort((a,b)=> b.r - a.r);
+
+      let missing = centsTotal - sumFloor; // céntimos a añadir
+      const out = floors.slice();
+
+      for (let k=0; k<remainders.length && missing>0; k++){
+        out[remainders[k].i] += 1;
+        missing--;
+      }
+
+      // Convierte a euros con 2 decimales exactos
+      return out.map(c => c/100);
+    }
+
+    // ===============================
+    // DOM
+    // ===============================
+    const DOM = {
+      tbody: document.getElementById('tbody'),
+      btnAdd: document.getElementById('btnAdd'),
+      btnCalc: document.getElementById('btnCalc'),
+      btnReset: document.getElementById('btnReset'),
+      pillCount: document.getElementById('pillCount'),
+      kpiTotal: document.getElementById('kpiTotal'),
+      kpiParts: document.getElementById('kpiParts'),
+      kpiUnit: document.getElementById('kpiUnit'),
+      resultList: document.getElementById('resultList'),
+      txList: document.getElementById('txList'),
+      txNote: document.getElementById('txNote'),
+      roundingNote: document.getElementById('roundingNote'),
+    };
+
+    // ===============================
+    // Gestión de filas
+    // ===============================
+    function addRow({name='', parts=1, paid=0} = {}) {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>
+          <input class="inp-name" type="text" placeholder="Nombre" value="${escapeHTML(name)}" />
+        </td>
+        <td>
+          <input class="inp-parts" type="number" min="0" step="1" placeholder="1" value="${escapeHTML(parts)}" />
+        </td>
+        <td>
+          <input class="inp-paid" type="text" inputmode="decimal" placeholder="0,00" value="${escapeHTML(paid)}" />
+        </td>
+        <td style="text-align:right;">
+          <div class="row-actions">
+            <button class="btn-danger btn-del" type="button" title="Eliminar">Eliminar</button>
+          </div>
+        </td>
+      `;
+
+      tr.querySelector('.btn-del').addEventListener('click', () => {
+        tr.remove();
+        updateCount();
+      });
+
+      DOM.tbody.appendChild(tr);
+      updateCount();
+    }
+
+    function updateCount() {
+      const n = DOM.tbody.querySelectorAll('tr').length;
+      DOM.pillCount.textContent = `${n} participante${n===1?'':'s'}`;
+    }
+
+    function clearOutputs() {
+      DOM.kpiTotal.textContent = '—';
+      DOM.kpiParts.textContent = '—';
+      DOM.kpiUnit.textContent = '—';
+      DOM.resultList.innerHTML = '';
+      DOM.txList.innerHTML = '';
+      DOM.txNote.style.display = 'none';
+      DOM.txNote.textContent = '';
+      DOM.roundingNote.textContent = '';
+    }
+
+    function resetAll() {
+      DOM.tbody.innerHTML = '';
+      clearOutputs();
+      // 3 filas de ejemplo
+      addRow({name:'', parts:1, paid:0});
+      addRow({name:'', parts:1, paid:0});
+      addRow({name:'', parts:1, paid:0});
+    }
+
+    // ===============================
+    // Cálculo principal
+    // ===============================
+    function collectParticipants() {
+      const rows = [...DOM.tbody.querySelectorAll('tr')];
+      const participants = [];
+      let hasError = false;
+
+      // limpiar estilos de error
+      rows.forEach(r => r.querySelectorAll('input').forEach(inp => inp.classList.remove('error')));
+
+      rows.forEach((r, idx) => {
+        const nameInp  = r.querySelector('.inp-name');
+        const partsInp = r.querySelector('.inp-parts');
+        const paidInp  = r.querySelector('.inp-paid');
+
+        const name = (nameInp.value || '').trim();
+        const parts = parseNum(partsInp.value);
+        const paid = parseNum(paidInp.value);
+
+        // Validaciones mínimas
+        if (!name) {
+          nameInp.classList.add('error');
+          hasError = true;
+        }
+        if (!Number.isFinite(parts) || parts <= 0) {
+          partsInp.classList.add('error');
+          hasError = true;
+        }
+        if (!Number.isFinite(paid) || paid < 0) {
+          paidInp.classList.add('error');
+          hasError = true;
+        }
+
+        participants.push({
+          idx,
+          name: name || `(Sin nombre ${idx+1})`,
+          parts: Number.isFinite(parts) ? parts : 0,
+          paid: Number.isFinite(paid) ? paid : 0,
+        });
+      });
+
+      return { participants, hasError };
+    }
+
+    function calculate() {
+      clearOutputs();
+
+      const { participants, hasError } = collectParticipants();
+      if (participants.length === 0) {
+        DOM.txNote.style.display = 'block';
+        DOM.txNote.textContent = 'Añade al menos un participante.';
+        return;
+      }
+      if (hasError) {
+        DOM.txNote.style.display = 'block';
+        DOM.txNote.textContent = 'Revisa los campos marcados en rojo (nombre obligatorio, partes > 0, pagado ≥ 0).';
+        return;
+      }
+
+      const totalPaid = participants.reduce((a,p)=>a+p.paid,0);
+      const totalParts = participants.reduce((a,p)=>a+p.parts,0);
+
+      if (totalParts <= 0) {
+        DOM.txNote.style.display = 'block';
+        DOM.txNote.textContent = 'El total de partes debe ser mayor que 0.';
+        return;
+      }
+
+      const unitRaw = totalPaid / totalParts;
+
+      // Objetivos teóricos (sin redondear)
+      const targetsRaw = participants.map(p => p.parts * unitRaw);
+
+      // Ajuste a céntimos para que la suma de "le toca pagar" sea exactamente totalPaid (a 2 decimales)
+      const totalPaid2 = round2(totalPaid);
+      const targets = apportionToCents(targetsRaw, totalPaid2);
+
+      // Recalcular unitario "informativo"
+      const unit2 = totalParts ? round2(totalPaid2 / totalParts) : 0;
+
+      // Balances a 2 decimales consistentes con targets
+      const enriched = participants.map((p,i) => {
+        const shouldPay = targets[i]; // ya a 2 decimales exactos
+        const paid2 = round2(p.paid);
+        const balance = round2(paid2 - shouldPay); // + cobra, - paga
+        return { ...p, paid2, shouldPay, balance };
+      });
+
+      // KPIs
+      DOM.kpiTotal.textContent = fmtEUR(totalPaid2);
+      DOM.kpiParts.textContent = String(totalParts);
+      DOM.kpiUnit.textContent = fmtEUR(unit2);
+
+      // Nota de redondeo
+      DOM.roundingNote.textContent =
+        `Nota: se ajustan céntimos para que la suma de “Le toca pagar” sea exactamente ${fmtEUR(totalPaid2)}.`;
+
+      // Lista de resultados por participante
+      enriched
+        .slice()
+        .sort((a,b)=> b.balance - a.balance) // primero cobradores
+        .forEach(p => {
+          const badgeClass = p.balance > 0.004 ? 'get' : (p.balance < -0.004 ? 'pay' : 'eq');
+          const label = p.balance > 0.004
+            ? `Cobra ${fmtEUR(Math.abs(p.balance))}`
+            : (p.balance < -0.004 ? `Abona ${fmtEUR(Math.abs(p.balance))}` : 'Cuadrado');
+
+          const meta = `Partes: ${p.parts} · Pagado: ${fmtEUR(p.paid2)} · Le toca: ${fmtEUR(p.shouldPay)}`;
+
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <div class="left">
+              <div class="name">${escapeHTML(p.name)}</div>
+              <div class="meta">${escapeHTML(meta)}</div>
+            </div>
+            <div class="badge ${badgeClass}">${escapeHTML(label)}</div>
+          `;
+          DOM.resultList.appendChild(div);
+        });
+
+      // Segunda sección: transferencias mínimas (quién paga a quién)
+      const creditors = enriched
+        .filter(p => p.balance > 0.004)
+        .map(p => ({ name: p.name, amount: round2(p.balance) }))
+        .sort((a,b)=> b.amount - a.amount);
+
+      const debtors = enriched
+        .filter(p => p.balance < -0.004)
+        .map(p => ({ name: p.name, amount: round2(-p.balance) })) // positivo: lo que debe pagar
+        .sort((a,b)=> b.amount - a.amount);
+
+      // Si ya está todo cuadrado
+      if (creditors.length === 0 && debtors.length === 0) {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="left">
+            <div class="name">Todo cuadrado</div>
+            <div class="meta">No hacen falta transferencias.</div>
+          </div>
+          <div class="badge eq">0,00 €</div>
+        `;
+        DOM.txList.appendChild(div);
+        DOM.txNote.style.display = 'block';
+        DOM.txNote.textContent = 'Todos han pagado exactamente lo que les corresponde según sus partes.';
+        return;
+      }
+
+      // Algoritmo greedy de liquidación: minimiza número de transferencias de forma razonable
+      const txs = [];
+      let i = 0, j = 0;
+      while (i < debtors.length && j < creditors.length) {
+        const d = debtors[i];
+        const c = creditors[j];
+        const dAmt = d.amount;
+        const cAmt = c.amount;
+
+        const pay = round2(Math.min(dAmt, cAmt));
+        if (pay > 0) {
+          txs.push({ from: d.name, to: c.name, amount: pay });
+          d.amount = round2(d.amount - pay);
+          c.amount = round2(c.amount - pay);
+        }
+
+        if (d.amount <= 0.004) i++;
+        if (c.amount <= 0.004) j++;
+      }
+
+      // Render
+      txs.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <div class="left">
+            <div class="name">${escapeHTML(t.from)} → ${escapeHTML(t.to)}</div>
+            <div class="meta">Transferencia recomendada para cuadrar cuentas.</div>
+          </div>
+          <div class="badge pay">${escapeHTML(fmtEUR(t.amount))}</div>
+        `;
+        DOM.txList.appendChild(div);
+      });
+
+      // Comprobación final (informativa)
+      const remainingDebtors = debtors.reduce((a,d)=>a+d.amount,0);
+      const remainingCreditors = creditors.reduce((a,c)=>a+c.amount,0);
+      const residue = round2(Math.abs(remainingDebtors - remainingCreditors));
+
+      DOM.txNote.style.display = 'block';
+      DOM.txNote.textContent =
+        residue <= 0.02
+          ? 'Las transferencias propuestas equilibran el grupo (puede haber una diferencia de 1–2 céntimos por redondeos).'
+          : 'Aviso: hay una discrepancia superior a 2 céntimos. Revisa entradas (pagado/partes) por posibles errores.';
+    }
+
+    // ===============================
+    // Eventos
+    // ===============================
+    DOM.btnAdd.addEventListener('click', () => addRow({name:'', parts:1, paid:0}));
+    DOM.btnCalc.addEventListener('click', calculate);
+    DOM.btnReset.addEventListener('click', resetAll);
+
+    // Permitir Enter para calcular desde cualquier input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const el = document.activeElement;
+        if (el && el.tagName === 'INPUT') {
+          e.preventDefault();
+          calculate();
+        }
+      }
+    });
+
+    // Init
+    resetAll();
+  </script>
+</body>
+</html>
